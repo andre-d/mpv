@@ -312,10 +312,70 @@ static int init(struct ao *ao, char *params)
     }
 
     if (!supports_digital) {
+        uint32_t size;
+        AudioObjectPropertyAddress p_addr = (AudioObjectPropertyAddress) {
+            .mSelector = kAudioDevicePropertyPreferredChannelLayout,
+            .mScope    = kAudioDevicePropertyScopeOutput,
+            .mElement  = kAudioObjectPropertyElementMaster,
+        };
+
+        err = AudioObjectGetPropertyDataSize(selected_device, &p_addr, 0, NULL,
+                                             &size);
+        CHECK_CA_ERROR("could not get audio device prefered layouts size");
+        size_t n_layouts = size / sizeof(AudioChannelLayout);
+
+        AudioChannelLayout *layouts = (AudioChannelLayout *) malloc(size);
+        err = AudioObjectGetPropertyData(selected_device, &p_addr, 0, NULL,
+                                         &size, layouts);
+        CHECK_CA_ERROR("could not get audio device prefered layouts");
+
+        for (int i=0; i < n_layouts; i++) {
+            ca_msg(MSGL_WARN, "channel layout %d:\n", i);
+
+            switch (layouts[i].mChannelLayoutTag) {
+            case kAudioChannelLayoutTag_UseChannelBitmap:
+                ca_msg(MSGL_WARN, "bitmap!\n");
+            case kAudioChannelLayoutTag_UseChannelDescriptions:
+                ca_msg(MSGL_WARN, "descriptions!\n");
+                size_t ch_num = layouts[i].mNumberChannelDescriptions;
+                for (int j=0; j < ch_num; j++) {
+                    AudioChannelLabel label =
+                        layouts[i].mChannelDescriptions[j].mChannelLabel;
+
+                    switch (label) {
+                    case kAudioChannelLabel_Left:
+                        ca_msg(MSGL_WARN, "ch%d: left!\n", j);
+                        break;
+                    case kAudioChannelLabel_Right:
+                        ca_msg(MSGL_WARN, "ch%d: right!\n", j);
+                        break;
+                    case kAudioChannelLabel_Unknown:
+                        ca_msg(MSGL_WARN, "ch%d: unknown channel, fuck me!\n", j);
+                        break;
+                    default:
+                        ca_msg(MSGL_WARN, "ch%d: more channels detected\n", j);
+                        break;
+                    }
+                }
+                // AudioChannelLayoutTag tag;
+                // uint32_t tag_size = sizeof(AudioChannelLayoutTag);
+                // err = AudioFormatGetProperty(
+                //     kAudioFormatProperty_TagForChannelLayout,
+                //     size, &layouts[i], &tag_size, &tag);
+                // CHECK_CA_ERROR("could not map channel layout to layout tag");
+                // break;
+                break;
+            default:
+                ca_msg(MSGL_WARN, "some tag!\n");
+            }
+        }
+
         struct mp_chmap_sel chmap_sel = {0};
         mp_chmap_sel_add_waveext(&chmap_sel);
         if (!ao_chmap_sel_adjust(ao, &chmap_sel, &ao->channels))
             goto coreaudio_error;
+
+        free(layouts);
     }
 
     // Build ASBD for the input format
