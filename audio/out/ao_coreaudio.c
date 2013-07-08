@@ -334,10 +334,16 @@ static int init(struct ao *ao, char *params)
 
             switch (layouts[i].mChannelLayoutTag) {
             case kAudioChannelLayoutTag_UseChannelBitmap:
-                ca_msg(MSGL_WARN, "bitmap!\n");
+                ca_msg(MSGL_WARN, "channel layout !\n");
             case kAudioChannelLayoutTag_UseChannelDescriptions:
                 ca_msg(MSGL_WARN, "descriptions!\n");
                 size_t ch_num = layouts[i].mNumberChannelDescriptions;
+
+                // if this is not a surround layout, the labels will have
+                // value kAudioChannelLabel_Unknown
+                // if (ch_num <= 3)
+                //     break;
+
                 for (int j=0; j < ch_num; j++) {
                     AudioChannelLabel label =
                         layouts[i].mChannelDescriptions[j].mChannelLabel;
@@ -349,11 +355,13 @@ static int init(struct ao *ao, char *params)
                     case kAudioChannelLabel_Right:
                         ca_msg(MSGL_WARN, "ch%d: right!\n", j);
                         break;
+                    case kAudioChannelLabel_UseCoordinates:
                     case kAudioChannelLabel_Unknown:
-                        ca_msg(MSGL_WARN, "ch%d: unknown channel, fuck me!\n", j);
+                        ca_msg(MSGL_WARN, "ch%d: unknown channel, skipping "
+                                          "layout %i\n", j, i);
                         break;
                     default:
-                        ca_msg(MSGL_WARN, "ch%d: more channels detected\n", j);
+                        ca_msg(MSGL_WARN, "ch%d: label %d detected\n", j, label);
                         break;
                     }
                 }
