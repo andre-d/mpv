@@ -589,16 +589,11 @@ static int init_digital(struct ao *ao, AudioStreamBasicDescription asbd)
     err = ca_enable_device_listener(p->device, changed);
     CHECK_CA_ERROR("cannot install format change listener during init");
 
-#if BYTE_ORDER == BIG_ENDIAN
-    if (!(p->stream_asdb.mFormatFlags & kAudioFormatFlagIsBigEndian))
-#else
-    /* tell mplayer that we need a byteswap on AC3 streams, */
-    if (d->stream_asdb.mFormatID & kAudioFormat60958AC3)
-        ao->format = AF_FORMAT_AC3_LE;
-    else if (d->stream_asdb.mFormatFlags & kAudioFormatFlagIsBigEndian)
-        ca_msg(MSGL_WARN,
-               "stream has non-native byte order, digital output may fail\n");
-#endif
+    ao->format &= ~AF_FORMAT_END_MASK;
+    if (d->stream_asdb.mFormatID & kAudioFormatFlagIsBigEndian)
+        ao->format |= AF_FORMAT_BE;
+    else
+        ao->format |= AF_FORMAT_LE;
 
     ao->samplerate = d->stream_asdb.mSampleRate;
     ao->bps = ao->samplerate *
