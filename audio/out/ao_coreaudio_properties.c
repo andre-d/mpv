@@ -46,40 +46,30 @@ OSStatus ca_set(AudioObjectID id, ca_scope scope, ca_sel selector,
     return AudioObjectSetPropertyData(id, &p_addr, 0, NULL, size, data);
 }
 
-uint32_t GetAudioPropertyArray(AudioObjectID id,
-                               AudioObjectPropertySelector selector,
-                               AudioObjectPropertyScope scope, void **data)
+OSStatus ca_get_ary(AudioObjectID id, ca_scope scope, ca_sel selector,
+                    uint32_t element_size, void **data, size_t elements)
 {
     OSStatus err;
-    AudioObjectPropertyAddress p_addr;
-    UInt32 p_size;
+    uint32_t p_size;
 
-    p_addr.mSelector = selector;
-    p_addr.mScope    = scope;
-    p_addr.mElement  = kAudioObjectPropertyElementMaster;
+    AudioObjectPropertyAddress p_addr = (AudioObjectPropertyAddress) {
+        .mSelector = selector,
+        .mScope    = scope,
+        .mElement  = kAudioObjectPropertyElementMaster,
+    };
 
     err = AudioObjectGetPropertyDataSize(id, &p_addr, 0, NULL, &p_size);
-    CHECK_CA_ERROR("Can't fetch property size");
+    CHECK_CA_ERROR("can't fetch property size");
 
     *data = malloc(p_size);
 
-    err = AudioObjectGetPropertyData(id, &p_addr, 0, NULL, &p_size, *data);
-    CHECK_CA_ERROR_L(coreaudio_error_free, "Can't fetch property data %s");
-
-    return p_size;
+    err = ca_get(id, scope, selector, p_size, *data);
+    CHECK_CA_ERROR_L(coreaudio_error_free, "can't fetch property data");
 
 coreaudio_error_free:
     free(*data);
 coreaudio_error:
-    return 0;
-}
-
-uint32_t GetGlobalAudioPropertyArray(AudioObjectID id,
-                                     AudioObjectPropertySelector selector,
-                                     void **data)
-{
-    return GetAudioPropertyArray(id, selector, kAudioObjectPropertyScopeGlobal,
-                                 data);
+    return err;
 }
 
 OSStatus GetAudioPropertyString(AudioObjectID id,

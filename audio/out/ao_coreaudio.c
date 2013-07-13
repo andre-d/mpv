@@ -203,18 +203,15 @@ static void print_help(void)
            "Available output devices:\n");
 
     AudioDeviceID *devs;
-    uint32_t devs_size =
-        GetGlobalAudioPropertyArray(kAudioObjectSystemObject,
-                                    kAudioHardwarePropertyDevices,
-                                    (void **)&devs);
-    if (!devs_size) {
-        ca_msg(MSGL_FATAL, "Failed to get list of output devices.\n");
-        goto coreaudio_out;
-    }
+    size_t n_devs;
 
-    int devs_n = devs_size / sizeof(AudioDeviceID);
+    OSStatus err =
+        CA_GET_ARY(kAudioObjectSystemObject, kAudioHardwarePropertyDevices,
+                   &devs, &n_devs);
 
-    for (int i = 0; i < devs_n; i++) {
+    CHECK_CA_ERROR("Failed to get list of output devices.");
+
+    for (int i = 0; i < n_devs; i++) {
         char *name;
         OSStatus err =
             GetAudioPropertyString(devs[i], kAudioObjectPropertyName, &name);
@@ -230,7 +227,7 @@ static void print_help(void)
 
     free(devs);
 
-coreaudio_out:
+coreaudio_error:
     ca_msg(MSGL_FATAL, "%s", help);
     talloc_free(help);
 }
@@ -502,7 +499,7 @@ static int init_digital(struct ao *ao, AudioStreamBasicDescription asbd)
 
     uint32_t is_alive = 1;
     err = CA_GET(p->device, kAudioDevicePropertyDeviceIsAlive, &is_alive);
-    CHECK_CA_WARN( "could not check whether device is alive");
+    CHECK_CA_WARN("could not check whether device is alive");
 
     if (!is_alive)
         ca_msg(MSGL_WARN, "device is not alive\n");
@@ -515,44 +512,38 @@ static int init_digital(struct ao *ao, AudioStreamBasicDescription asbd)
     err = ca_disable_mixing(p->device, &d->changed_mixing);
     CHECK_CA_WARN("failed to disable mixing");
 
-    AudioStreamID *streams = NULL;
+    AudioStreamID *streams;
+    size_t n_streams;
+
     /* Get a list of all the streams on this device. */
-    size = GetAudioPropertyArray(p->device,
-                                 kAudioDevicePropertyStreams,
-                                 kAudioDevicePropertyScopeOutput,
-                                 (void **)&streams);
+    err = CA_GET_ARY_O(p->device, kAudioDevicePropertyStreams,
+                       &streams, &n_streams);
 
-    if (!size) {
-        ca_msg(MSGL_WARN, "could not get number of streams\n");
-        goto coreaudio_error;
-    }
+    CHECK_CA_ERROR("could not get number of streams");
 
-    int streams_n = size / sizeof(AudioStreamID);
-
-    for (int i = 0; i < streams_n && d->stream_idx < 0; i++) {
+    for (int i = 0; i < n_streams && d->stream_idx < 0; i++) {
         bool digital = ca_stream_supports_digital(streams[i]);
 
         if (digital) {
-            /* Find a stream with a cac3 stream. */
-            AudioStreamRangedDescription *formats = NULL;
-            size = GetGlobalAudioPropertyArray(streams[i],
-                                               kAudioStreamPropertyAvailablePhysicalFormats,
-                                               (void **)&formats);
+            AudioStreamRangedDescription *formats;
+            size_t n_formats;
 
-            if (!size) {
+            err = CA_GET_ARY(streams[i],
+                             kAudioStreamPropertyAvailablePhysicalFormats,
+                             &formats, &n_formats);
+
+            if (err != noErr) {
                 ca_msg(MSGL_WARN, "could not get number of stream formats\n");
                 continue; // try next one
             }
 
-            int formats_n = size / sizeof(AudioStreamRangedDescription);
-            /* If this stream supports a digital (cac3) format, then set it. */
             int req_rate_format = -1;
             int max_rate_format = -1;
 
             d->stream = streams[i];
             d->stream_idx = i;
 
-            for (int j = 0; j < formats_n; j++)
+            for (int j = 0; j < n_formats; j++)
                 if (ca_format_is_digital(formats[j].mFormat)) {
                     // select the digital format that has exactly the same
                     // samplerate. If an exact match cannot be found, select

@@ -21,12 +21,11 @@
 
 #include <AudioToolbox/AudioToolbox.h>
 
-// CoreaAudio names are way too verbose
-
+// CoreAudio names are way too verbose
 #define ca_sel    AudioObjectPropertySelector
 #define ca_scope  AudioObjectPropertyScope
 #define CA_GLOBAL kAudioObjectPropertyScopeGlobal
-#define CA_OUTPUT kAudioObjectPropertyScopeOutut
+#define CA_OUTPUT kAudioObjectPropertyScopeOutput
 
 OSStatus ca_get(AudioObjectID id, ca_scope scope, ca_sel selector,
                 uint32_t size, void *data);
@@ -37,13 +36,14 @@ OSStatus ca_set(AudioObjectID id, ca_scope scope, ca_sel selector,
 #define CA_GET(id, sel, data) ca_get(id, CA_GLOBAL, sel, sizeof(*(data)), data)
 #define CA_SET(id, sel, data) ca_set(id, CA_GLOBAL, sel, sizeof(*(data)), data)
 
-uint32_t GetAudioPropertyArray(AudioObjectID id,
-                               AudioObjectPropertySelector selector,
-                               AudioObjectPropertyScope scope, void **data);
+OSStatus ca_get_ary(AudioObjectID id, ca_scope scope, ca_sel selector,
+                    uint32_t element_size, void **data, size_t *elements);
 
-uint32_t GetGlobalAudioPropertyArray(AudioObjectID id,
-                                     AudioObjectPropertySelector selector,
-                                     void **data);
+#define CA_GET_ARY(id, sel, data, elements) \
+    ca_get_ary(id, CA_GLOBAL, sel, sizeof(**(data)), (void **)data, elements)
+
+#define CA_GET_ARY_O(id, sel, data, elements) \
+    ca_get_ary(id, CA_OUTPUT, sel, sizeof(**(data)), (void **)data, elements)
 
 OSStatus GetAudioPropertyString(AudioObjectID id,
                                 AudioObjectPropertySelector selector,
