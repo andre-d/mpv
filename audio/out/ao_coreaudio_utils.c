@@ -117,14 +117,14 @@ bool ca_stream_supports_digital(AudioStreamID stream)
         ca_print_asbd("supported format:", &(asbd));
         if (ca_format_is_digital(asbd)) {
             free(formats);
-            return false;
+            return true;
         }
     }
 
     free(formats);
 
 coreaudio_error:
-    return true;
+    return false;
 }
 
 bool ca_device_supports_digital(AudioDeviceID device)
