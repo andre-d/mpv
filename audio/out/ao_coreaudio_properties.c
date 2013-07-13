@@ -34,6 +34,18 @@ OSStatus ca_get(AudioObjectID id, AudioObjectPropertySelector selector,
     return AudioObjectGetPropertyData(id, &p_addr, 0, NULL, &size, data);
 }
 
+OSStatus ca_set(AudioObjectID id, AudioObjectPropertySelector selector,
+                uint32_t size, void *data)
+{
+    AudioObjectPropertyAddress p_addr = (AudioObjectPropertyAddress) {
+        .mSelector = selector,
+        .mScope    = kAudioObjectPropertyScopeGlobal,
+        .mElement  = kAudioObjectPropertyElementMaster,
+    };
+
+    return AudioObjectSetPropertyData(id, &p_addr, 0, NULL, size, data);
+}
+
 uint32_t GetAudioPropertyArray(AudioObjectID id,
                                AudioObjectPropertySelector selector,
                                AudioObjectPropertyScope scope, void **data)
@@ -95,20 +107,6 @@ OSStatus GetAudioPropertyString(AudioObjectID id,
     CFRelease(string);
 coreaudio_error:
     return err;
-}
-
-OSStatus SetAudioProperty(AudioObjectID id,
-                          AudioObjectPropertySelector selector,
-                          uint32_t size, void *data)
-{
-    AudioObjectPropertyAddress p_addr;
-
-    p_addr.mSelector = selector;
-    p_addr.mScope    = kAudioObjectPropertyScopeGlobal;
-    p_addr.mElement  = kAudioObjectPropertyElementMaster;
-
-    return AudioObjectSetPropertyData(id, &p_addr, 0, NULL,
-                                      size, data);
 }
 
 Boolean IsAudioPropertySettable(AudioObjectID id,

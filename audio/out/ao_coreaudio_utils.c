@@ -194,8 +194,7 @@ OSStatus ca_device_listener(AudioObjectID object, uint32_t n_addresses,
 
 OSStatus ca_lock_device(AudioDeviceID device, pid_t *pid) {
     *pid = getpid();
-    OSStatus err = SetAudioProperty(device, kAudioDevicePropertyHogMode,
-                                    sizeof(*pid), pid);
+    OSStatus err = CA_SET(device, kAudioDevicePropertyHogMode, pid);
     if (err != noErr)
         *pid = -1;
 
@@ -205,8 +204,7 @@ OSStatus ca_lock_device(AudioDeviceID device, pid_t *pid) {
 OSStatus ca_unlock_device(AudioDeviceID device, pid_t *pid) {
     if (*pid == getpid()) {
         *pid = -1;
-        return SetAudioProperty(device, kAudioDevicePropertyHogMode,
-                                sizeof(*pid), &pid);
+        return CA_SET(device, kAudioDevicePropertyHogMode, &pid);
     }
     return noErr;
 }
@@ -234,8 +232,7 @@ static OSStatus ca_change_mixing(AudioDeviceID device, uint32_t val,
         if (!writeable)
             return noErr;
 
-        err = SetAudioProperty(device, kAudioDevicePropertySupportsMixing,
-                               sizeof(uint32_t), &val);
+        err = CA_SET(device, kAudioDevicePropertySupportsMixing, &val);
         if (err != noErr)
             return err;
 
@@ -311,8 +308,7 @@ bool ca_change_format(AudioStreamID stream,
     }
 
     /* Change the format. */
-    err = SetAudioProperty(stream, kAudioStreamPropertyPhysicalFormat,
-                           sizeof(AudioStreamBasicDescription), &change_format);
+    err = CA_SET(stream, kAudioStreamPropertyPhysicalFormat, &change_format);
     if (!CHECK_CA_WARN("error changing physical format")) {
         return false;
     }
