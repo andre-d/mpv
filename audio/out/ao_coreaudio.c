@@ -213,8 +213,7 @@ static void print_help(void)
 
     for (int i = 0; i < n_devs; i++) {
         char *name;
-        OSStatus err =
-            GetAudioPropertyString(devs[i], kAudioObjectPropertyName, &name);
+        OSStatus err = CA_GET_STR(devs[i], kAudioObjectPropertyName, &name);
 
         if (err == noErr) {
             help = talloc_asprintf_append(help,
@@ -288,10 +287,7 @@ static int init(struct ao *ao, char *params)
     }
 
     char *device_name;
-    err = GetAudioPropertyString(selected_device,
-                                 kAudioObjectPropertyName,
-                                 &device_name);
-
+    err = CA_GET_STR(selected_device, kAudioObjectPropertyName, &device_name);
     CHECK_CA_ERROR("could not get selected audio device name");
 
     ca_msg(MSGL_V,

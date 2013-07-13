@@ -72,21 +72,13 @@ coreaudio_error:
     return err;
 }
 
-OSStatus GetAudioPropertyString(AudioObjectID id,
-                                AudioObjectPropertySelector selector,
-                                char **data)
+OSStatus ca_get_str(AudioObjectID id, ca_scope scope, ca_sel selector,
+                    char **data)
 {
-    OSStatus err;
-    AudioObjectPropertyAddress p_addr;
-    UInt32 p_size = sizeof(CFStringRef);
     CFStringRef string;
-
-    p_addr.mSelector = selector;
-    p_addr.mScope    = kAudioObjectPropertyScopeGlobal;
-    p_addr.mElement  = kAudioObjectPropertyElementMaster;
-
-    err = AudioObjectGetPropertyData(id, &p_addr, 0, NULL, &p_size, &string);
-    CHECK_CA_ERROR("Can't fetch array property");
+    OSStatus err =
+        ca_get(id, scope, selector, sizeof(CFStringRef), (void **)&string);
+    CHECK_CA_ERROR("Can't fetch string property");
 
     CFIndex size =
         CFStringGetMaximumSizeForEncoding(

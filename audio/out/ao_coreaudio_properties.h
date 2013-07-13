@@ -45,9 +45,10 @@ OSStatus ca_get_ary(AudioObjectID id, ca_scope scope, ca_sel selector,
 #define CA_GET_ARY_O(id, sel, data, elements) \
     ca_get_ary(id, CA_OUTPUT, sel, sizeof(**(data)), (void **)data, elements)
 
-OSStatus GetAudioPropertyString(AudioObjectID id,
-                                AudioObjectPropertySelector selector,
-                                char **data);
+OSStatus ca_get_str(AudioObjectID id, ca_scope scope,ca_sel selector,
+                    char **data);
+
+#define CA_GET_STR(id, sel, data) ca_get_str(id, CA_GLOBAL, sel, data)
 
 Boolean IsAudioPropertySettable(AudioObjectID id,
                                 AudioObjectPropertySelector selector,
