@@ -340,7 +340,7 @@ static int init(struct ao *ao, char *params)
                     break;
 
                 case kAudioChannelLayoutTag_UseChannelDescriptions:
-                    if (ca_bitmap_from_ch_descriptions(layouts[i], &bitmap))
+                    if (ca_bitmap_from_ch_desc(layouts[i], &bitmap))
                         bitmaps[n_bitmaps++] = bitmap;
                     break;
 

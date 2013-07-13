@@ -70,8 +70,7 @@ OSStatus ca_disable_device_listener(AudioDeviceID device, void *flag);
 bool ca_change_format(AudioStreamID stream,
                       AudioStreamBasicDescription change_format);
 
-bool ca_bitmap_from_ch_descriptions(AudioChannelLayout layout,
-                                    uint32_t *bitmap);
+bool ca_bitmap_from_ch_desc(AudioChannelLayout layout, uint32_t *bitmap);
 bool ca_bitmap_from_ch_tag(AudioChannelLayout layout, uint32_t *bitmap);
 
 #endif /* MPV_COREAUDIO_UTILS_H */

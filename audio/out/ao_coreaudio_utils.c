@@ -342,8 +342,7 @@ bool ca_change_format(AudioStreamID stream,
     return format_set;
 }
 
-bool ca_bitmap_from_ch_descriptions(AudioChannelLayout layout,
-                                    uint32_t *bitmap)
+bool ca_bitmap_from_ch_desc(AudioChannelLayout layout, uint32_t *bitmap)
 {
     // If the channel layout uses channel descriptions, from my
     // exepriments there are there three possibile cases:
