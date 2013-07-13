@@ -482,6 +482,7 @@ static int init_lpcm(struct ao *ao, AudioStreamBasicDescription asbd)
     CHECK_CA_ERROR_L(coreaudio_error_audiounit,
                      "unable to set render callback on audio unit");
 
+    reset(ao);
     return CONTROL_OK;
 
 coreaudio_error_audiounit:
@@ -608,6 +609,8 @@ static int init_digital(struct ao *ao, AudioStreamBasicDescription asbd)
                                     &d->render_cb);
 
     CHECK_CA_ERROR("failed to register digital render callback");
+
+    reset(ao);
 
     return CONTROL_TRUE;
 
