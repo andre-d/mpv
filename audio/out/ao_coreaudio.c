@@ -495,7 +495,6 @@ static int init_digital(struct ao *ao, AudioStreamBasicDescription asbd)
     struct priv *p = ao->priv;
     struct priv_d *d = p->digital;
     OSStatus err = noErr;
-    uint32_t size;
 
     uint32_t is_alive = 1;
     err = CA_GET(p->device, kAudioDevicePropertyDeviceIsAlive, &is_alive);

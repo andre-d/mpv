@@ -47,7 +47,7 @@ OSStatus ca_set(AudioObjectID id, ca_scope scope, ca_sel selector,
 }
 
 OSStatus ca_get_ary(AudioObjectID id, ca_scope scope, ca_sel selector,
-                    uint32_t element_size, void **data, size_t elements)
+                    uint32_t element_size, void **data, size_t *elements)
 {
     OSStatus err;
     uint32_t p_size;
