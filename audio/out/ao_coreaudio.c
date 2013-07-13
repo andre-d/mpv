@@ -307,21 +307,11 @@ static int init(struct ao *ao, char *params)
     }
 
     if (!supports_digital) {
-        uint32_t size;
-        AudioObjectPropertyAddress p_addr = (AudioObjectPropertyAddress) {
-            .mSelector = kAudioDevicePropertyPreferredChannelLayout,
-            .mScope    = kAudioDevicePropertyScopeOutput,
-            .mElement  = kAudioObjectPropertyElementMaster,
-        };
-
-        err = AudioObjectGetPropertyDataSize(selected_device, &p_addr, 0, NULL,
-                                             &size);
-        CHECK_CA_ERROR("could not get audio device prefered layouts size");
-        size_t n_layouts = size / sizeof(AudioChannelLayout);
-
-        AudioChannelLayout *layouts = (AudioChannelLayout *) malloc(size);
-        err = AudioObjectGetPropertyData(selected_device, &p_addr, 0, NULL,
-                                         &size, layouts);
+        AudioChannelLayout *layouts;
+        size_t n_layouts;
+        err = CA_GET_ARY_O(selected_device,
+                           kAudioDevicePropertyPreferredChannelLayout,
+                           &layouts, &n_layouts);
         CHECK_CA_ERROR("could not get audio device prefered layouts");
 
         uint32_t bitmaps[n_layouts];
