@@ -230,6 +230,8 @@ void osd_draw(struct osd_state *osd, struct mp_osd_res res,
               const bool formats[SUBBITMAP_COUNT],
               void (*cb)(void *ctx, struct sub_bitmaps *imgs), void *cb_ctx)
 {
+    long time = mp_time_us();
+
     if (draw_flags & OSD_DRAW_SUB_FILTER)
         draw_flags |= OSD_DRAW_SUB_ONLY;
 
@@ -257,6 +259,9 @@ void osd_draw(struct osd_state *osd, struct mp_osd_res res,
             }
         }
     }
+    time = mp_time_us() - time;
+    mp_info(osd->log, "osd_draw took %ld\n", time);
+
 }
 
 struct draw_on_image_closure {

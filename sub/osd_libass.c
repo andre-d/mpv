@@ -36,7 +36,7 @@ static const char osd_font_pfb[] =
 
 #include "sub/ass_mp.h"
 #include "options/options.h"
-
+#include "osdep/timer.h"
 
 #define ASS_USE_OSD_FONT "{\\fnmpv-osd-symbols}"
 
@@ -467,10 +467,13 @@ void osd_object_get_bitmaps(struct osd_state *osd, struct osd_object *obj,
     if (!obj->osd_track)
         return;
 
+    long time = mp_time_us();
     ass_set_frame_size(obj->osd_render, obj->vo_res.w, obj->vo_res.h);
     ass_set_aspect_ratio(obj->osd_render, obj->vo_res.display_par, 1.0);
     mp_ass_render_frame(obj->osd_render, obj->osd_track, 0,
                         &obj->parts_cache, out_imgs);
+    time = mp_time_us() - time;
+    mp_info(osd->log, "ass took %ld\n", time);
     talloc_steal(obj, obj->parts_cache);
 }
 
